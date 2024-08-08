@@ -18,6 +18,17 @@ function graficad31() {
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // Crear un div para el tooltip
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background-color", "white")
+        .style("border", "1px solid #ccc")
+        .style("padding", "5px")
+        .style("border-radius", "4px")
+        .style("font-size", "12px");
+
     d3.csv(csvUrl).then(data => {
         const filteredData = data.filter(d => d.RIO === 'RIO HUASAGA' && d.PUNTO === 'P1');
 
@@ -66,11 +77,27 @@ function graficad31() {
             .attr("y", d => y(d['CALIDAD AGUA NSF']))
             .attr("width", x.bandwidth())
             .attr("height", d => height - y(d['CALIDAD AGUA NSF']))
-            .attr("fill", "steelblue");
+            .attr("fill", "steelblue")
+            .on("mouseover", function(event, d) {
+                d3.select(this).attr("fill", "green");
+                tooltip.style("visibility", "visible")
+                    .html(`<strong>${d3.timeFormat("%Y-/%m-%d")(d.FECHA)}</strong><br>Calidad Agua NSF: <strong>${d['CALIDAD AGUA NSF']}</strong>`);
+            })
+            .on("mousemove", function(event) {
+                tooltip.style("top", (event.pageY - 10) + "px")
+                    .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).attr("fill", "steelblue");
+                tooltip.style("visibility", "hidden");
+            });
     }).catch(error => {
         console.error("Error al cargar o procesar el CSV:", error);
     });
 }
+
+
+
 
 function graficad32() {
     const csvUrl = 'https://raw.githubusercontent.com/EdisonFlores/Pruebas-d3chart/main/Parametrosfisio.csv';
@@ -85,6 +112,17 @@ function graficad32() {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Crear un div para el tooltip
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background-color", "white")
+        .style("border", "1px solid #ccc")
+        .style("padding", "5px")
+        .style("border-radius", "4px")
+        .style("font-size", "12px");
 
     d3.csv(csvUrl).then(data => {
         let filteredData = data.filter(d => d.RIO === 'RIO HUASAGA' && d.PUNTO === 'P1');
@@ -103,7 +141,7 @@ function graficad32() {
             } else {
                 console.error(`Fecha no válida encontrada: ${d.FECHA}`);
             }
-            d['Ph'] = +d['Ph'];
+            d['CALIDAD AGUA NSF'] = +d['CALIDAD AGUA NSF'];
         });
 
         // Ordenar los datos cronológicamente
@@ -114,7 +152,7 @@ function graficad32() {
             .range([0, width]);
 
         const y = d3.scaleLinear()
-            .domain([0, d3.max(filteredData, d => d['Ph'])])
+            .domain([0, d3.max(filteredData, d => d['CALIDAD AGUA NSF'])])
             .nice()
             .range([height, 0]);
 
@@ -129,7 +167,7 @@ function graficad32() {
 
         const line = d3.line()
             .x(d => x(d.FECHA))
-            .y(d => y(d['Ph']));
+            .y(d => y(d['CALIDAD AGUA NSF']));
 
         svg.append("path")
             .datum(filteredData)
@@ -139,22 +177,34 @@ function graficad32() {
             .attr("stroke", "steelblue")
             .attr("stroke-width", 2);
 
-        // Agregar puntos
+        // Agregar puntos con interacción
         svg.selectAll(".dot")
             .data(filteredData)
             .enter()
             .append("circle")
             .attr("class", "dot")
             .attr("cx", d => x(d.FECHA))
-            .attr("cy", d => y(d['Ph']))
+            .attr("cy", d => y(d['CALIDAD AGUA NSF']))
             .attr("r", 4) // Tamaño del punto
-            .attr("fill", "blue"); // Color del punto
+            .attr("fill", "blue")
+            .on("mouseover", function(event, d) {
+                d3.select(this).attr("r", 7); // Aumentar el tamaño del punto
+                tooltip.style("visibility", "visible")
+                    .html(`<strong>${d3.timeFormat("%Y-%m-%d")(d.FECHA)}</strong><br>Calidad Agua NSF: <strong>${d['CALIDAD AGUA NSF']}</strong>`);
+            })
+            .on("mousemove", function(event) {
+                tooltip.style("top", (event.pageY - 10) + "px")
+                    .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).attr("r", 4); // Restaurar el tamaño original del punto
+                tooltip.style("visibility", "hidden");
+            });
 
     }).catch(error => {
         console.error("Error al cargar o procesar el CSV:", error);
     });
 }
-
 
 
 function graficad33() {
@@ -171,6 +221,17 @@ function graficad33() {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", `translate(${(width + margin.left + margin.right) / 2},${(height + margin.top + margin.bottom) / 2})`);
+
+    // Crear un div para el tooltip
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background-color", "white")
+        .style("border", "1px solid #ccc")
+        .style("padding", "5px")
+        .style("border-radius", "4px")
+        .style("font-size", "12px");
 
     d3.csv(csvUrl).then(data => {
         const filteredData = data.filter(d => d.RIO === 'RIO HUASAGA' && d.PUNTO === 'P1');
@@ -189,6 +250,8 @@ function graficad33() {
 
         const pieData = Array.from(classificationCount, ([key, value]) => ({ classification: key, count: value }));
 
+        const total = d3.sum(pieData, d => d.count); // Calcular el total
+
         // Definir la escala de colores
         const color = d3.scaleOrdinal()
             .domain(['Buena', 'Regular', 'Mala'])
@@ -203,13 +266,34 @@ function graficad33() {
 
         const arcs = pie(pieData);
 
-        svg.selectAll(".arc")
+        const arcSelection = svg.selectAll(".arc")
             .data(arcs)
             .enter()
             .append("path")
             .attr("class", "arc")
             .attr("d", arc)
-            .attr("fill", d => color(d.data.classification));
+            .attr("fill", d => color(d.data.classification))
+            .on("mouseover", function(event, d) {
+                d3.select(this)
+                    .transition()
+                    .duration(300)
+                    .attr("transform", "scale(1.1)"); // Aumentar el tamaño del sector
+                d3.select(this).attr("stroke", "#000").attr("stroke-width", 2); // Resaltar el sector
+                tooltip.style("visibility", "visible")
+                    .html(`<strong>${d.data.classification}</strong><br>Count: <strong>${d.data.count}</strong><br>Percentage: <strong>${((d.data.count / total) * 100).toFixed(2)}%</strong>`);
+            })
+            .on("mousemove", function(event) {
+                tooltip.style("top", (event.pageY - 10) + "px")
+                    .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this)
+                    .transition()
+                    .duration(300)
+                    .attr("transform", "scale(1)"); // Restaurar el tamaño original del sector
+                d3.select(this).attr("stroke", null).attr("stroke-width", 0); // Quitar el resaltado
+                tooltip.style("visibility", "hidden");
+            });
 
         svg.selectAll(".label")
             .data(arcs)
@@ -218,12 +302,10 @@ function graficad33() {
             .attr("transform", d => `translate(${arc.centroid(d)})`)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
-            .text(d => d.data.classification)
+            .text(d => `${d.data.classification}: ${((d.data.count / total) * 100).toFixed(2)}%`)
             .style("fill", "#fff");
 
     }).catch(error => {
         console.error("Error al cargar o procesar el CSV:", error);
     });
 }
-
-
